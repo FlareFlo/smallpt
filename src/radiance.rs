@@ -44,7 +44,7 @@ pub fn radiance(spheres: &[Sphere], r: Ray, mut depth: i32) -> Vec3 {
 			Vec3::new(0.0, 1.0, 0.0)
 		} else {
 			Vec3::new(1.0, 0.0, 0.0) % w
-		};
+		}.norm();
 		let v = w % u;
 		let d = (u.mul_f(r1.cos() * r2s) + v.mul_f(r1.sin() * r2s) + w.mul_f((1.0 - r2).sqrt())).norm();
 		// Ideal DIFFUSE reflection
@@ -65,7 +65,7 @@ pub fn radiance(spheres: &[Sphere], r: Ray, mut depth: i32) -> Vec3 {
 	let nt = 1.5;
 	let nnt = if into { nc / nt } else { nt / nc };
 	let ddn = r.d.dot(nl);
-	let cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
+	let cos2t = 1.0 - nnt * nnt * (1.0 - ddn.powi(2));
 	if cos2t < 0.0 {
 		return obj.e + f * radiance(spheres, refl_ray, depth);
 	}

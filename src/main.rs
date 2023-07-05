@@ -17,7 +17,7 @@ fn clamp(x: f64) -> f64 {
    x.clamp(0.0, 1.0)
 }
 
-fn to_int(x: f64) -> usize { (clamp(x).powf(1.0 / 2.2) * 255.0 + 0.5) as _ }
+fn to_int(x: f64) -> i32 { (clamp(x).powf(1.0 / 2.2) * 255.0 + 0.5) as i32 }
 
 fn erand48() -> f64 {
     fastrand::i32(..) as f64 / i32::MAX as f64
@@ -27,12 +27,14 @@ fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
     let n = spheres.len();
     let inf = 1e20;
     *t = inf;
-    for i in 0..n {
+    let mut i = n - 1;
+    while i > 0 {
         let d = spheres[i].intersect(r);
         if d != 0.0 && d < *t {
             *t = d;
-            *id = i as _;
+            *id = i;
         }
+        i -= 1;
     }
     return *t < inf;
 }
@@ -53,7 +55,7 @@ fn main() {
 
     let w = 1024;
     let h = 768;
-    let samps = 4; // TODO: Fetch argument
+    let samps = 64; // TODO: Fetch argument
 
     let cam = Ray {
         o: Vec3 {
@@ -67,7 +69,7 @@ fn main() {
             z: -1.0,
         }.norm()
     };
-    let cx = Vec3::new(w as f64 * 0.6135 / h as f64, 0.0, 0.0);
+    let cx = Vec3::new(w as f64 * 0.5135 / h as f64, 0.0, 0.0);
     let cy = (cx % cam.d).norm().mul_f(0.5135);
     let mut r = Vec3::ZEROES;
     let mut c = vec![Vec3::ZEROES; w * h];
@@ -76,13 +78,13 @@ fn main() {
         println!("Rendering at {} samples: {}%", samps * 4, 100 * y / (h - 1));
 
         let mut x = 0;
-        while x < w {
+        while x < w {  // Loop cols
             let mut sy = 0;
-            while sy < 2 {
-                let i = (h - y - 1) * w + x;
+            let i = (h - y - 1) * w + x;
+            while sy < 2 { // 2x2 subpixel rows
 
                 let mut sx = 0;
-                while sx < 2 {
+                while sx < 2 {  // 2x2 subpixel cols
                     r = Vec3::ZEROES;
                     for _ in 0..samps {
                         let r1 = 2.0 * erand48();
@@ -98,7 +100,7 @@ fn main() {
                             1.0 - (2.0 - r2).sqrt()
                         };
                         let d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
-                                        cy.mul_f(((sy as f64 + 0.5 + dy as f64) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
+                                        cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
                         r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
                     }
                     c[i] = c[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
