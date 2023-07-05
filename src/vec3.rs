@@ -1,11 +1,11 @@
-use std::ops::{Mul, Rem};
+use std::ops::{Add, Mul, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
 /// Stores positions, but may double as colors too
 pub struct Vec3 {
-	x: f64,
-	y: f64,
-	z: f64,
+	pub x: f64,
+	pub y: f64,
+	pub z: f64,
 }
 
 
@@ -35,9 +35,41 @@ impl Rem for Vec3 {
 	}
 }
 
+impl Sub for Vec3 {
+	type Output = Self;
+
+	fn sub(self, rhs: Self) -> Self::Output {
+		Self {
+			x: self.x - rhs.x,
+			y: self.y - rhs.y,
+			z: self.z - rhs.z,
+		}
+	}
+}
+
+impl Add for Vec3 {
+	type Output = Self;
+
+	fn add(self, rhs: Self) -> Self::Output {
+		Self {
+			x: self.x + rhs.x,
+			y: self.y + rhs.y,
+			z: self.z + rhs.z,
+		}
+	}
+}
+
 impl Vec3 {
+	pub const ZEROES: Self = Self {
+		x: 0.0,
+		y: 0.0,
+		z: 0.0,
+	};
+
+	pub const fn new(x: f64, y: f64, z: f64) -> Self { Self { x, y, z, } }
+
 	/// operator* equivalent
-	pub fn mul_f(&self, by: f64) -> Self {
+	pub fn mul_f(self, by: f64) -> Self {
 		Self {
 			x: self.x * by,
 			y: self.y * by,
@@ -46,7 +78,7 @@ impl Vec3 {
 	}
 
 	/// operator+ equivalent
-	pub fn add_f(&self, with: f64) -> Self {
+	pub fn add_f(self, with: f64) -> Self {
 		Self {
 			x: self.x + with,
 			y: self.y + with,
@@ -54,25 +86,17 @@ impl Vec3 {
 		}
 	}
 
-	/// operator- equivalent
-	pub fn sub_f(&self, with: f64) -> Self {
-		Self {
-			x: self.x - with,
-			y: self.y - with,
-			z: self.z - with,
-		}
-	}
-
-	pub fn norm(&mut self) {
+	pub fn norm(self) -> Self {
 		let len = self.len();
-		*self = self.mul_f(1 / len);
+		self.mul_f(1.0 / len)
 	}
 
-	pub fn dot(&self, other: &Self) -> f64 {
+
+	pub fn dot(self, other: Self) -> f64 {
 		self.x * other.x + self.y * other.y + self.z * other.z
 	}
 
-	pub fn len(&self) -> f64 {
+	pub fn len(self) -> f64 {
 		(self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
 	}
 }
