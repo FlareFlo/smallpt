@@ -1,3 +1,5 @@
+use std::fmt::Write;
+use std::fs;
 use std::sync::Once;
 use crate::radiance::radiance;
 use crate::ray::Ray;
@@ -111,4 +113,10 @@ fn main() {
         y += 1;
     }
 
+    let mut buf = String::new();
+    buf.write_str(&format!("P3\n{} {}\n{}\n", w,h,255)).unwrap();
+    for i in c {
+        buf.write_str(&format!("{} {} {} ", to_int(i.x), to_int(i.y), to_int(i.z))).unwrap();
+    }
+    fs::write("image.ppm", buf.into_bytes()).unwrap();
 }

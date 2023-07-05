@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 fastrand = "2.0.0"
+image = { version = "0.24.6", features = ["pnm"] }
