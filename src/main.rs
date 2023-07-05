@@ -1,6 +1,8 @@
 use std::fmt::Write;
 use std::fs;
 use std::sync::Once;
+use image::ImageFormat;
+use show_image::{create_window, ImageInfo, ImageView};
 use crate::radiance::radiance;
 use crate::ray::Ray;
 use crate::sphere::{ReflectionType, Sphere};
@@ -35,6 +37,7 @@ fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
     return *t < inf;
 }
 
+#[show_image::main]
 fn main() {
     let spheres = {&[
         Sphere::new(1e5, Vec3::new(1e5 +  1.0, 40.8, 81.6), Vec3::ZEROES, Vec3::new(0.75, 0.25, 0.25), ReflectionType::Diff),//Left
@@ -50,7 +53,7 @@ fn main() {
 
     let w = 1024;
     let h = 768;
-    let samps = 1; // TODO: Fetch argument
+    let samps = 4; // TODO: Fetch argument
 
     let cam = Ray {
         o: Vec3 {
@@ -118,5 +121,13 @@ fn main() {
     for i in c {
         buf.write_str(&format!("{} {} {} ", to_int(i.x), to_int(i.y), to_int(i.z))).unwrap();
     }
+    let image = image::load_from_memory_with_format(buf.as_bytes(), ImageFormat::Pnm).unwrap();
+
+    // Create a window with default options and display the image.
+    let window = create_window("image", Default::default()).unwrap();
+    window.set_image("image", image).unwrap();
     fs::write("image.ppm", buf.into_bytes()).unwrap();
+    loop {
+
+    }
 }
