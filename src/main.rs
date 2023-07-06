@@ -77,21 +77,16 @@ fn main() {
     let cx = Vec3::new(w as f64 * 0.5135 / h as f64, 0.0, 0.0);
     let cy = (cx % cam.d).norm().mul_f(0.5135);
     let mut c = vec![Vec3::ZEROES; w * h];
-    let mut y = 0;
-
-    while y < h {
+    for y in 0..h {
         let percentage = 100.0 * y as f64 / (h as f64 - 1.0);
         // let percentage_left = 100.0 - percentage;
         println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
-        let mut x = 0;
-        while x < w {  // Loop cols
-            let mut sy = 0;
+       for x in 0..w {  // Loop cols
             let i = (h - y - 1) * w + x;
-            while sy < 2 { // 2x2 subpixel rows
+           for sy in 0..2 { // 2x2 subpixel rows
 
-                let mut sx = 0;
-                while sx < 2 {  // 2x2 subpixel cols
+                for sx in 0..2{  // 2x2 subpixel cols
                     let mut r = Vec3::ZEROES; // Current radiance
                     for _ in 0..samps {
                         let r1 = 2.0 * erand48();
@@ -111,18 +106,9 @@ fn main() {
                         r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
                     }
                     c[i] = c[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
-
-                    sx += 1;
                 }
-
-                sy += 1;
             }
-
-
-            x += 1;
         }
-
-        y += 1;
     }
 
     if env::var("NO_SAVE").is_ok() {
