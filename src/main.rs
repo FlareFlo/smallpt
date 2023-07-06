@@ -3,6 +3,7 @@ use std::str::FromStr;
 use std::fmt::Write;
 use std::fs;
 use std::sync::Once;
+use std::time::{Duration, Instant};
 use image::ImageFormat;
 use show_image::{create_window, ImageInfo, ImageView};
 use crate::radiance::radiance;
@@ -78,8 +79,11 @@ fn main() {
     let mut r = Vec3::ZEROES;
     let mut c = vec![Vec3::ZEROES; w * h];
     let mut y = 0;
+
     while y < h {
-        println!("Rendering at {} samples: {}%", samps * 4, 100 * y / (h - 1));
+        let percentage = 100.0 * y as f64 / (h as f64 - 1.0);
+        // let percentage_left = 100.0 - percentage;
+        println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
         let mut x = 0;
         while x < w {  // Loop cols
