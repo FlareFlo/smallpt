@@ -3,6 +3,7 @@ use std::str::FromStr;
 use std::fmt::Write;
 use std::{env, fs};
 use std::sync::{Mutex, Once};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 use image::ImageFormat;
 use rayon::iter::IntoParallelIterator;
@@ -80,12 +81,13 @@ fn main() {
     let cy = (cx % cam.d).norm().mul_f(0.5135);
 
     // cast buffer into mutex to access it in paralel
-    let mut c = Mutex::new(vec![Vec3::ZEROES; w * h]);
+    let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
+    let completed_lines = AtomicUsize::new(0);
      (0..h).into_par_iter().for_each(|y|
         {
-            let percentage = 100.0 * y as f64 / (h as f64 - 1.0);
+            let percentage = 100.0 * completed_lines.load(Ordering::Relaxed) as f64 / (h as f64 - 1.0);
             // let percentage_left = 100.0 - percentage;
-            // println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
+            println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
             for x in 0..w {  // Loop cols
                 let i = (h - y - 1) * w + x;
@@ -110,16 +112,21 @@ fn main() {
                                 cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
                             r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
                         }
-                        let mut c = c.lock().unwrap();
-                        c[i] = c[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
+                        let mut image_buffer = image_buffer.lock().unwrap();
+                        image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
                     }
                 }
             }
+            completed_lines.fetch_add(1, Ordering::Relaxed);
         }
     );
+    // A little bit of cheating,
+    // as it is not guaranteed that the last thread prints its progress
+    // before another has already finished, so we simply assert it has completed
+    println!("Rendering at {} samples: 100%", samps * 4);
 
     // Pull buffer out of mutex
-    let c = c.into_inner().unwrap();
+    let c = image_buffer.into_inner().unwrap();
 
     if env::var("NO_SAVE").is_ok() {
         exit(0);
