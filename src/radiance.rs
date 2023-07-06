@@ -18,9 +18,9 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 
 		// object currently being measured
 		let obj = spheres[to_intersect_object_id];
-		let x = r.o + r.d.mul_f(distance_to_intersection);
+		let x = r.origin + r.direction.mul_f(distance_to_intersection);
 		let n = (x - obj.position).norm();
-		let nl = if n.dot(r.d) < 0.0 { n } else { n.mul_f(-1.0) };
+		let nl = if n.dot(r.direction) < 0.0 { n } else { n.mul_f(-1.0) };
 		let mut f = obj.color;
 		let p = if f.x > f.y && f.x > f.z {
 			f.x
@@ -52,15 +52,15 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 			let v = w % u;
 			let d = (u.mul_f(r1.cos() * r2s) + v.mul_f(r1.sin() * r2s) + w.mul_f((1.0 - r2).sqrt())).norm();
 			// Ideal DIFFUSE reflection
-			return obj.emission + f * radiance(spheres, Ray { o: x, d }, depth, rng);
+			return obj.emission + f * radiance(spheres, Ray { origin: x, direction: d }, depth, rng);
 		} else if obj.refl == ReflectionType::Spec {
 			// Ideal SPECULAR reflection
-			return obj.emission + f * radiance(spheres, Ray { o: x, d: r.d - n.mul_f(2.0 * n.dot(r.d)) }, depth, rng);
+			return obj.emission + f * radiance(spheres, Ray { origin: x, direction: r.direction - n.mul_f(2.0 * n.dot(r.direction)) }, depth, rng);
 		}
 		// Ideal dielectric REFRACTION
 		let refl_ray = Ray {
-			o: x,
-			d: r.d - n.mul_f(2.0 * n.dot(r.d)),
+			origin: x,
+			direction: r.direction - n.mul_f(2.0 * n.dot(r.direction)),
 		};
 
 		// Ray from outside going in?
@@ -68,12 +68,12 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 		let nc = 1.0;
 		let nt = 1.5;
 		let nnt = if into { nc / nt } else { nt / nc };
-		let ddn = r.d.dot(nl);
+		let ddn = r.direction.dot(nl);
 		let cos2t = 1.0 - nnt * nnt * (1.0 - ddn.powi(2));
 		if cos2t < 0.0 {
 			return obj.emission + f * radiance(spheres, refl_ray, depth, rng);
 		}
-		let tdir = (r.d.mul_f(nnt) - n.mul_f(if into { 1.0 } else { -1.0 } * (ddn * nnt + cos2t.sqrt()))).norm();
+		let tdir = (r.direction.mul_f(nnt) - n.mul_f(if into { 1.0 } else { -1.0 } * (ddn * nnt + cos2t.sqrt()))).norm();
 		let a = nt - nc;
 		let b = nt + nc;
 		let R0 = a.powi(2) / b.powi(2);
@@ -88,10 +88,10 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 				if rng() < P {
 					radiance(spheres, refl_ray, depth, rng).mul_f(RP)
 				} else {
-					radiance(spheres, Ray { o: x, d: tdir }, depth, rng)
+					radiance(spheres, Ray { origin: x, direction: tdir }, depth, rng)
 				}
 			} else {
-				radiance(spheres, refl_ray, depth, rng).mul_f(Re) + radiance(spheres, Ray { o: x, d: tdir }, depth, rng).mul_f(Tr)
+				radiance(spheres, refl_ray, depth, rng).mul_f(Re) + radiance(spheres, Ray { origin: x, direction: tdir }, depth, rng).mul_f(Tr)
 			}
 		};
 	}

@@ -79,19 +79,19 @@ fn main() {
     };
 
     let cam = Ray {
-        o: Vec3 {
+        origin: Vec3 {
             x: 50.0,
             y: 52.0,
             z: 295.6,
         },
-        d: Vec3 {
+        direction: Vec3 {
             x: 0.0,
             y: -0.042612,
             z: -1.0,
         }.norm()
     };
     let cx = Vec3::new(w as f64 * 0.5135 / h as f64, 0.0, 0.0);
-    let cy = (cx % cam.d).norm().mul_f(0.5135);
+    let cy = (cx % cam.direction).norm().mul_f(0.5135);
 
     // cast buffer into mutex to access it in parallel
     let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
@@ -138,8 +138,8 @@ fn main() {
                                 1.0 - (2.0 - r2).sqrt()
                             };
                             let d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
-                                cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
-                            r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0, rng).mul_f(1.0 / samps as f64);
+                                cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.direction;
+                            r = r + radiance(spheres, Ray { origin: cam.origin + d.mul_f(140.0), direction: d.norm() }, 0, rng).mul_f(1.0 / samps as f64);
                         }
                         let mut image_buffer = image_buffer.lock().unwrap();
                         image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(super_sampling_brightness_factor);
