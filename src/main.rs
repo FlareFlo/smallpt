@@ -50,8 +50,9 @@ fn intersect(spheres: Spheres, r: Ray, t: &mut f64, id: &mut usize) -> bool {
 
 pub type Spheres<'a> = &'a [Sphere];
 
-fn main() {
-    let spheres: Spheres = &[
+#[inline(always)]
+pub fn get_spheres() -> [Sphere; 9] {
+    [
         Sphere::new(1e5, Vec3::new(1e5 +  1.0, 40.8, 81.6), Vec3::ZEROES, Vec3::new(0.75, 0.25, 0.25), ReflectionType::Diff),//Left
         Sphere::new(1e5, Vec3::new(-1e5 + 99.0, 40.8, 81.6), Vec3::ZEROES, Vec3::new(0.25, 0.25, 0.75), ReflectionType::Diff),//Rght
         Sphere::new(1e5, Vec3::new(50.0, 40.8, 1e5), Vec3::ZEROES, Vec3::new(0.75, 0.75, 0.75), ReflectionType::Diff),//Back
@@ -61,7 +62,13 @@ fn main() {
         Sphere::new(16.5, Vec3::new(27.0, 16.5, 47.0), Vec3::ZEROES, Vec3::new(1.0, 1.0, 1.0).mul_f(  0.999), ReflectionType::Spec),//Mirr
         Sphere::new(16.5, Vec3::new(73.0, 16.5, 78.0), Vec3::ZEROES, Vec3::new(1.0, 1.0, 1.0).mul_f(0.999), ReflectionType::Refr),//Glas
         Sphere::new(600.0, Vec3::new(50.0, 681.6 - 0.27, 81.6), Vec3::new(12.0, 12.0, 12.0), Vec3::ZEROES, ReflectionType::Diff), //Lite
-    ];
+    ]
+}
+
+fn main() {
+    let spheres: Spheres = &get_spheres();
+
+    let rng = erand48;
 
     let w = 1024;
     let h = 768;
@@ -132,7 +139,7 @@ fn main() {
                             };
                             let d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
                                 cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
-                            r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
+                            r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0, rng).mul_f(1.0 / samps as f64);
                         }
                         let mut image_buffer = image_buffer.lock().unwrap();
                         image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(super_sampling_brightness_factor);
