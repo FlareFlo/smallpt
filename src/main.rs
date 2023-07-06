@@ -125,13 +125,13 @@ fn main() {
                     for sx in 0..super_sampling {  // 2x2 subpixel cols
                         let mut r = Vec3::ZEROES; // Current radiance
                         for _ in 0..samps {
-                            let r1 = 2.0 * erand48();
+                            let r1 = 2.0 * rng();
                             let dx = if r1 < 1.0 {
                                 r1.sqrt() - 1.0
                             } else {
                                 1.0 - (2.0 - r1).sqrt()
                             };
-                            let r2 = 2.0 * erand48();
+                            let r2 = 2.0 * rng();
                             let dy = if r2 < 1.0 {
                                 r2.sqrt() - 1.0
                             } else {
