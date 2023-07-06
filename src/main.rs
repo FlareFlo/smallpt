@@ -135,11 +135,7 @@ fn main() {
     completed_lines.store(h, Ordering::Relaxed);
     progress_thread.join().unwrap();
 
-    // A little bit of cheating,
-    // as it is not guaranteed that the last thread prints its progress
-    // before another has already finished, so we simply assert it has completed
-    println!("Rendering at {} samples: 100%", samps * 4);
-    println!("Took: {:?}", start.elapsed());
+    println!("Finished rendering after: {:?}", start.elapsed());
 
     // Pull buffer out of mutex
     let c = image_buffer.into_inner().unwrap();
