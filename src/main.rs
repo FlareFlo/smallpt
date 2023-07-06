@@ -83,10 +83,12 @@ fn main() {
     // cast buffer into mutex to access it in parallel
     let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
     let completed_lines = AtomicUsize::new(0);
+    let start = Instant::now();
      (0..h).into_par_iter().for_each(|y|
         {
             let percentage = 100.0 * completed_lines.load(Ordering::Relaxed) as f64 / (h as f64 - 1.0);
             // let percentage_left = 100.0 - percentage;
+            clearscreen::clear().unwrap();
             println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
             for x in 0..w {  // Loop cols
@@ -124,6 +126,7 @@ fn main() {
     // as it is not guaranteed that the last thread prints its progress
     // before another has already finished, so we simply assert it has completed
     println!("Rendering at {} samples: 100%", samps * 4);
+    println!("Took: {:?}", start.elapsed());
 
     // Pull buffer out of mutex
     let c = image_buffer.into_inner().unwrap();
