@@ -2,9 +2,11 @@ use std::env::args;
 use std::str::FromStr;
 use std::fmt::Write;
 use std::{env, fs};
-use std::sync::Once;
+use std::sync::{Mutex, Once};
 use std::time::{Duration, Instant};
 use image::ImageFormat;
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::ParallelIterator;
 use show_image::{create_window, exit, ImageInfo, ImageView};
 use crate::radiance::radiance;
 use crate::ray::Ray;
@@ -76,40 +78,48 @@ fn main() {
     };
     let cx = Vec3::new(w as f64 * 0.5135 / h as f64, 0.0, 0.0);
     let cy = (cx % cam.d).norm().mul_f(0.5135);
-    let mut c = vec![Vec3::ZEROES; w * h];
-    for y in 0..h {
-        let percentage = 100.0 * y as f64 / (h as f64 - 1.0);
-        // let percentage_left = 100.0 - percentage;
-        println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
-       for x in 0..w {  // Loop cols
-            let i = (h - y - 1) * w + x;
-           for sy in 0..2 { // 2x2 subpixel rows
+    // cast buffer into mutex to access it in paralel
+    let mut c = Mutex::new(vec![Vec3::ZEROES; w * h]);
+     (0..h).into_par_iter().for_each(|y|
+        {
+            let percentage = 100.0 * y as f64 / (h as f64 - 1.0);
+            // let percentage_left = 100.0 - percentage;
+            // println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
-                for sx in 0..2{  // 2x2 subpixel cols
-                    let mut r = Vec3::ZEROES; // Current radiance
-                    for _ in 0..samps {
-                        let r1 = 2.0 * erand48();
-                        let dx = if r1 < 1.0 {
-                            r1.sqrt() - 1.0
-                        } else {
-                            1.0 - (2.0 - r1).sqrt()
-                        };
-                        let r2 = 2.0 * erand48();
-                        let dy = if r2 < 1.0 {
-                            r2.sqrt() - 1.0
-                        } else {
-                            1.0 - (2.0 - r2).sqrt()
-                        };
-                        let d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
-                                        cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
-                        r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
+            for x in 0..w {  // Loop cols
+                let i = (h - y - 1) * w + x;
+                for sy in 0..2 { // 2x2 subpixel rows
+
+                    for sx in 0..2{  // 2x2 subpixel cols
+                        let mut r = Vec3::ZEROES; // Current radiance
+                        for _ in 0..samps {
+                            let r1 = 2.0 * erand48();
+                            let dx = if r1 < 1.0 {
+                                r1.sqrt() - 1.0
+                            } else {
+                                1.0 - (2.0 - r1).sqrt()
+                            };
+                            let r2 = 2.0 * erand48();
+                            let dy = if r2 < 1.0 {
+                                r2.sqrt() - 1.0
+                            } else {
+                                1.0 - (2.0 - r2).sqrt()
+                            };
+                            let d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
+                                cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.d;
+                            r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
+                        }
+                        let mut c = c.lock().unwrap();
+                        c[i] = c[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
                     }
-                    c[i] = c[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
                 }
             }
         }
-    }
+    );
+
+    // Pull buffer out of mutex
+    let c = c.into_inner().unwrap();
 
     if env::var("NO_SAVE").is_ok() {
         exit(0);

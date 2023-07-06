@@ -1565,6 +1565,7 @@ version = "0.1.0"
 dependencies = [
  "fastrand",
  "image",
+ "rayon",
  "show-image",
 ]
 
