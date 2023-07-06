@@ -1,11 +1,11 @@
 use std::f64::consts::PI;
 
-use crate::{erand48, intersect};
+use crate::{erand48, intersect, Spheres};
 use crate::ray::Ray;
 use crate::sphere::{ReflectionType, Sphere};
 use crate::vec3::Vec3;
 
-pub fn radiance(spheres: &[Sphere], r: Ray, mut depth: i32) -> Vec3 {
+pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32) -> Vec3 {
 	let mut distance_to_intersection = 1e20;
 	let mut to_intersect_object_id = 0_usize;
 	if !intersect(spheres, r, &mut distance_to_intersection, &mut to_intersect_object_id) {

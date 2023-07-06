@@ -2,6 +2,7 @@ use std::env::args;
 use std::str::FromStr;
 use std::fmt::Write;
 use std::{env, fs, thread};
+use std::mem::size_of;
 use std::process::exit;
 use std::sync::{Arc, Mutex, Once};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -33,7 +34,7 @@ fn erand48() -> f64 {
 }
 
 #[inline(always)]
-fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
+fn intersect(spheres: Spheres, r: Ray, t: &mut f64, id: &mut usize) -> bool {
     let n = spheres.len();
     let inf = 1e20;
     *t = inf;
@@ -47,8 +48,10 @@ fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
     return *t < inf;
 }
 
+pub type Spheres<'a> = &'a [Sphere];
+
 fn main() {
-    let spheres = {&[
+    let spheres: Spheres = &[
         Sphere::new(1e5, Vec3::new(1e5 +  1.0, 40.8, 81.6), Vec3::ZEROES, Vec3::new(0.75, 0.25, 0.25), ReflectionType::Diff),//Left
         Sphere::new(1e5, Vec3::new(-1e5 + 99.0, 40.8, 81.6), Vec3::ZEROES, Vec3::new(0.25, 0.25, 0.75), ReflectionType::Diff),//Rght
         Sphere::new(1e5, Vec3::new(50.0, 40.8, 1e5), Vec3::ZEROES, Vec3::new(0.75, 0.75, 0.75), ReflectionType::Diff),//Back
@@ -58,7 +61,7 @@ fn main() {
         Sphere::new(16.5, Vec3::new(27.0, 16.5, 47.0), Vec3::ZEROES, Vec3::new(1.0, 1.0, 1.0).mul_f(  0.999), ReflectionType::Spec),//Mirr
         Sphere::new(16.5, Vec3::new(73.0, 16.5, 78.0), Vec3::ZEROES, Vec3::new(1.0, 1.0, 1.0).mul_f(0.999), ReflectionType::Refr),//Glas
         Sphere::new(600.0, Vec3::new(50.0, 681.6 - 0.27, 81.6), Vec3::new(12.0, 12.0, 12.0), Vec3::ZEROES, ReflectionType::Diff), //Lite
-    ]};
+    ];
 
     let w = 1024;
     let h = 768;
