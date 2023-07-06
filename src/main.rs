@@ -1,3 +1,5 @@
+use std::env::args;
+use std::str::FromStr;
 use std::fmt::Write;
 use std::fs;
 use std::sync::Once;
@@ -53,7 +55,11 @@ fn main() {
 
     let w = 1024;
     let h = 768;
-    let samps = 64; // TODO: Fetch argument
+    let samps = if let Some(samp_string) = args().skip(1).next() {
+        usize::from_str(&samp_string).unwrap()
+    } else {
+        64
+    };
 
     let cam = Ray {
         o: Vec3 {
