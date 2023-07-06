@@ -19,9 +19,9 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 		// object currently being measured
 		let obj = spheres[to_intersect_object_id];
 		let x = r.o + r.d.mul_f(distance_to_intersection);
-		let n = (x - obj.p).norm();
+		let n = (x - obj.position).norm();
 		let nl = if n.dot(r.d) < 0.0 { n } else { n.mul_f(-1.0) };
-		let mut f = obj.c;
+		let mut f = obj.color;
 		let p = if f.x > f.y && f.x > f.z {
 			f.x
 		} else if f.y > f.z {
@@ -35,7 +35,7 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 			if rng() < p {
 				f = f.mul_f(1.0 / p);
 			} else {
-				return obj.e;
+				return obj.emission;
 			}
 		}
 
@@ -52,10 +52,10 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 			let v = w % u;
 			let d = (u.mul_f(r1.cos() * r2s) + v.mul_f(r1.sin() * r2s) + w.mul_f((1.0 - r2).sqrt())).norm();
 			// Ideal DIFFUSE reflection
-			return obj.e + f * radiance(spheres, Ray { o: x, d }, depth, rng);
+			return obj.emission + f * radiance(spheres, Ray { o: x, d }, depth, rng);
 		} else if obj.refl == ReflectionType::Spec {
 			// Ideal SPECULAR reflection
-			return obj.e + f * radiance(spheres, Ray { o: x, d: r.d - n.mul_f(2.0 * n.dot(r.d)) }, depth, rng);
+			return obj.emission + f * radiance(spheres, Ray { o: x, d: r.d - n.mul_f(2.0 * n.dot(r.d)) }, depth, rng);
 		}
 		// Ideal dielectric REFRACTION
 		let refl_ray = Ray {
@@ -71,7 +71,7 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 		let ddn = r.d.dot(nl);
 		let cos2t = 1.0 - nnt * nnt * (1.0 - ddn.powi(2));
 		if cos2t < 0.0 {
-			return obj.e + f * radiance(spheres, refl_ray, depth, rng);
+			return obj.emission + f * radiance(spheres, refl_ray, depth, rng);
 		}
 		let tdir = (r.d.mul_f(nnt) - n.mul_f(if into { 1.0 } else { -1.0 } * (ddn * nnt + cos2t.sqrt()))).norm();
 		let a = nt - nc;
@@ -83,7 +83,7 @@ pub fn radiance(spheres: Spheres, r: Ray, mut depth: i32, rng: fn() -> f64) -> V
 		let P = 0.25 + 0.5 * Re;
 		let RP = Re / P;
 		let TP = Tr / (1.0 - P);
-		return obj.e + f * {
+		return obj.emission + f * {
 			if depth > 2 {
 				if rng() < P {
 					radiance(spheres, refl_ray, depth, rng).mul_f(RP)

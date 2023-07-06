@@ -17,13 +17,13 @@ pub struct Sphere {
 	pub rad: f64,
 
 	/// position
-	pub p: Vec3,
+	pub position: Vec3,
 
 	/// emission
-	pub e: Vec3,
+	pub emission: Vec3,
 
 	/// color
-	pub c: Vec3,
+	pub color: Vec3,
 
 	pub refl: ReflectionType,
 }
@@ -32,9 +32,9 @@ impl Sphere {
 	pub const fn new(rad: f64, p: Vec3, e: Vec3, c: Vec3, refl: ReflectionType) -> Self {
 		Self {
 			rad,
-			p,
-			e,
-			c,
+			position: p,
+			emission: e,
+			color: c,
 			refl,
 		}
 	}
@@ -42,7 +42,7 @@ impl Sphere {
 	/// returns intersection distance, returns 0 when it misses
 	#[inline(always)]
 	pub fn intersect(&self, r: Ray) -> f64 {
-		let op = self.p - r.o; // Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0
+		let op = self.position - r.o; // Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0
 		let b = op.dot(r.d);
 		let mut det = b.powi(2) - op.dot(op) + self.rad.powi(2);
 
