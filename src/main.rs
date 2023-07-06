@@ -1,14 +1,14 @@
 use std::env::args;
 use std::str::FromStr;
 use std::fmt::Write;
-use std::{env, fs};
-use std::sync::{Mutex, Once};
+use std::{env, fs, thread};
+use std::process::exit;
+use std::sync::{Arc, Mutex, Once};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread::sleep;
 use std::time::{Duration, Instant};
-use image::ImageFormat;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
-use show_image::{create_window, exit, ImageInfo, ImageView};
 use crate::radiance::radiance;
 use crate::ray::Ray;
 use crate::sphere::{ReflectionType, Sphere};
@@ -43,7 +43,6 @@ fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
     return *t < inf;
 }
 
-#[show_image::main]
 fn main() {
     let spheres = {&[
         Sphere::new(1e5, Vec3::new(1e5 +  1.0, 40.8, 81.6), Vec3::ZEROES, Vec3::new(0.75, 0.25, 0.25), ReflectionType::Diff),//Left
@@ -82,15 +81,25 @@ fn main() {
 
     // cast buffer into mutex to access it in parallel
     let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
-    let completed_lines = AtomicUsize::new(0);
+    let completed_lines = Arc::new(AtomicUsize::new(0));
+
+    // The progress thread receives a reference to the progress
+    let progress_lines = completed_lines.clone();
+    let progress_thread = thread::spawn({
+        move ||{
+            while progress_lines.load(Ordering::Relaxed) < h {
+                let percentage = 100.0 * progress_lines.load(Ordering::Relaxed) as f64 / (h as f64 - 1.0);
+                // let percentage_left = 100.0 - percentage;
+                clearscreen::clear().unwrap();
+                println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
+                sleep(Duration::from_millis(33)); // Only update progress every 30hz
+            }
+        }
+    });
+
     let start = Instant::now();
      (0..h).into_par_iter().for_each(|y|
         {
-            let percentage = 100.0 * completed_lines.load(Ordering::Relaxed) as f64 / (h as f64 - 1.0);
-            // let percentage_left = 100.0 - percentage;
-            clearscreen::clear().unwrap();
-            println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
-
             for x in 0..w {  // Loop cols
                 let i = (h - y - 1) * w + x; // Current pixel index
                 for sy in 0..2 { // 2x2 subpixel rows
@@ -122,6 +131,10 @@ fn main() {
             completed_lines.fetch_add(1, Ordering::Relaxed);
         }
     );
+    // Ensure the status thread terminates
+    completed_lines.store(h, Ordering::Relaxed);
+    progress_thread.join().unwrap();
+
     // A little bit of cheating,
     // as it is not guaranteed that the last thread prints its progress
     // before another has already finished, so we simply assert it has completed
@@ -140,22 +153,5 @@ fn main() {
     for i in c {
         buf.write_str(&format!("{} {} {} ", to_int(i.x), to_int(i.y), to_int(i.z))).unwrap();
     }
-    let image = image::load_from_memory_with_format(buf.as_bytes(), ImageFormat::Pnm).unwrap();
-
-    // Create a window with default options and display the image.
-    let window = create_window("image", Default::default()).unwrap();
-    window.set_image("image", image).unwrap();
     fs::write("image.ppm", buf.into_bytes()).unwrap();
-
-    for event in window.event_channel().unwrap() {
-        if let show_image::event::WindowEvent::Destroyed(_) = event {
-            break;
-        }
-        if let show_image::event::WindowEvent::KeyboardInput(event) = event {
-            if event.input.key_code == Some(show_image::event::VirtualKeyCode::Q) && event.input.state.is_pressed() {
-                break;
-            }
-        }
-
-    }
 }
