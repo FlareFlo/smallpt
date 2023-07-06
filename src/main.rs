@@ -27,14 +27,12 @@ fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
     let n = spheres.len();
     let inf = 1e20;
     *t = inf;
-    let mut i = n - 1;
-    while i > 0 {
+    for i in 0..n {
         let d = spheres[i].intersect(r);
         if d != 0.0 && d < *t {
             *t = d;
-            *id = i;
+            *id = i as _;
         }
-        i -= 1;
     }
     return *t < inf;
 }
