@@ -26,7 +26,7 @@ fn clamp(x: f64) -> f64 {
 fn to_int(x: f64) -> i32 { (clamp(x).powf(1.0 / 2.2) * 255.0 + 0.5) as i32 }
 
 fn erand48() -> f64 {
-    fastrand::i32(..) as f64 / i32::MAX as f64
+    fastrand::i32(0..) as f64 / i32::MAX as f64
 }
 
 fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
