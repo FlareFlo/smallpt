@@ -133,7 +133,16 @@ fn main() {
     let window = create_window("image", Default::default()).unwrap();
     window.set_image("image", image).unwrap();
     fs::write("image.ppm", buf.into_bytes()).unwrap();
-    loop {
+
+    for event in window.event_channel().unwrap() {
+        if let show_image::event::WindowEvent::Destroyed(_) = event {
+            break;
+        }
+        if let show_image::event::WindowEvent::KeyboardInput(event) = event {
+            if event.input.key_code == Some(show_image::event::VirtualKeyCode::Q) && event.input.state.is_pressed() {
+                break;
+            }
+        }
 
     }
 }
