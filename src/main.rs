@@ -80,7 +80,7 @@ fn main() {
     let cx = Vec3::new(w as f64 * 0.5135 / h as f64, 0.0, 0.0);
     let cy = (cx % cam.d).norm().mul_f(0.5135);
 
-    // cast buffer into mutex to access it in paralel
+    // cast buffer into mutex to access it in parallel
     let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
     let completed_lines = AtomicUsize::new(0);
      (0..h).into_par_iter().for_each(|y|
@@ -90,7 +90,7 @@ fn main() {
             println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
 
             for x in 0..w {  // Loop cols
-                let i = (h - y - 1) * w + x;
+                let i = (h - y - 1) * w + x; // Current pixel index
                 for sy in 0..2 { // 2x2 subpixel rows
 
                     for sx in 0..2{  // 2x2 subpixel cols
