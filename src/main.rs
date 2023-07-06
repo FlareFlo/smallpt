@@ -102,9 +102,13 @@ fn main() {
         {
             for x in 0..w {  // Loop cols
                 let i = (h - y - 1) * w + x; // Current pixel index
-                for sy in 0..2 { // 2x2 subpixel rows
 
-                    for sx in 0..2{  // 2x2 subpixel cols
+                let super_sampling: usize = 2; // Non-zero multiple of two
+                let super_sampling_brightness_factor = 1.0 / super_sampling.pow(2) as f64;
+
+                for sy in 0..super_sampling { // 2x2 subpixel rows
+
+                    for sx in 0..super_sampling {  // 2x2 subpixel cols
                         let mut r = Vec3::ZEROES; // Current radiance
                         for _ in 0..samps {
                             let r1 = 2.0 * erand48();
@@ -124,7 +128,7 @@ fn main() {
                             r = r + radiance(spheres, Ray { o: cam.o + d.mul_f(140.0), d: d.norm() }, 0).mul_f(1.0 / samps as f64);
                         }
                         let mut image_buffer = image_buffer.lock().unwrap();
-                        image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(0.25);
+                        image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(super_sampling_brightness_factor);
                     }
                 }
             }
