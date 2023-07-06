@@ -1,11 +1,11 @@
 use std::env::args;
 use std::str::FromStr;
 use std::fmt::Write;
-use std::fs;
+use std::{env, fs};
 use std::sync::Once;
 use std::time::{Duration, Instant};
 use image::ImageFormat;
-use show_image::{create_window, ImageInfo, ImageView};
+use show_image::{create_window, exit, ImageInfo, ImageView};
 use crate::radiance::radiance;
 use crate::ray::Ray;
 use crate::sphere::{ReflectionType, Sphere};
@@ -76,7 +76,6 @@ fn main() {
     };
     let cx = Vec3::new(w as f64 * 0.5135 / h as f64, 0.0, 0.0);
     let cy = (cx % cam.d).norm().mul_f(0.5135);
-    let mut r = Vec3::ZEROES;
     let mut c = vec![Vec3::ZEROES; w * h];
     let mut y = 0;
 
@@ -93,7 +92,7 @@ fn main() {
 
                 let mut sx = 0;
                 while sx < 2 {  // 2x2 subpixel cols
-                    r = Vec3::ZEROES;
+                    let mut r = Vec3::ZEROES; // Current radiance
                     for _ in 0..samps {
                         let r1 = 2.0 * erand48();
                         let dx = if r1 < 1.0 {
@@ -124,6 +123,10 @@ fn main() {
         }
 
         y += 1;
+    }
+
+    if env::var("NO_SAVE").is_ok() {
+        exit(0);
     }
 
     let mut buf = String::new();
