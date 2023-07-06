@@ -13,6 +13,7 @@ pub struct Vec3 {
 impl Mul for Vec3 {
 	type Output = Self;
 
+	#[inline(always)]
 	fn mul(self, rhs: Self) -> Self::Output {
 		Self {
 			x: rhs.x * self.x,
@@ -26,6 +27,7 @@ impl Mul for Vec3 {
 impl Rem for Vec3 {
 	type Output = Self;
 
+	#[inline(always)]
 	fn rem(self, b: Self) -> Self::Output {
 		Self {
 			x: self.y * b.z - self.z * b.y,
@@ -38,6 +40,7 @@ impl Rem for Vec3 {
 impl Sub for Vec3 {
 	type Output = Self;
 
+	#[inline(always)]
 	fn sub(self, rhs: Self) -> Self::Output {
 		Self {
 			x: self.x - rhs.x,
@@ -50,6 +53,7 @@ impl Sub for Vec3 {
 impl Add for Vec3 {
 	type Output = Self;
 
+	#[inline(always)]
 	fn add(self, rhs: Self) -> Self::Output {
 		Self {
 			x: self.x + rhs.x,
@@ -69,6 +73,7 @@ impl Vec3 {
 	pub const fn new(x: f64, y: f64, z: f64) -> Self { Self { x, y, z, } }
 
 	/// operator* equivalent
+	#[inline(always)]
 	pub fn mul_f(self, by: f64) -> Self {
 		Self {
 			x: self.x * by,
@@ -78,6 +83,7 @@ impl Vec3 {
 	}
 
 	/// operator+ equivalent
+	#[inline(always)]
 	pub fn add_f(self, with: f64) -> Self {
 		Self {
 			x: self.x + with,
@@ -86,16 +92,19 @@ impl Vec3 {
 		}
 	}
 
+	#[inline(always)]
 	pub fn norm(self) -> Self {
 		let len = self.len();
 		self.mul_f(1.0 / len)
 	}
 
 
+	#[inline(always)]
 	pub fn dot(self, other: Self) -> f64 {
 		self.x * other.x + self.y * other.y + self.z * other.z
 	}
 
+	#[inline(always)]
 	pub fn len(self) -> f64 {
 		(self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
 	}

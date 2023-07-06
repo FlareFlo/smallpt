@@ -40,6 +40,7 @@ impl Sphere {
 	}
 
 	/// returns intersection distance, returns 0 when it misses
+	#[inline(always)]
 	pub fn intersect(&self, r: Ray) -> f64 {
 		let op = self.p - r.o; // Solve t^2*d.d + 2*t*(o-p).d + (o-p).(o-p)-R^2 = 0
 		let b = op.dot(r.d);

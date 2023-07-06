@@ -19,16 +19,20 @@ mod sphere;
 mod ray;
 mod radiance;
 
+#[inline(always)]
 fn clamp(x: f64) -> f64 {
    x.clamp(0.0, 1.0)
 }
 
+#[inline(always)]
 fn to_int(x: f64) -> i32 { (clamp(x).powf(1.0 / 2.2) * 255.0 + 0.5) as i32 }
 
+#[inline(always)]
 fn erand48() -> f64 {
     fastrand::i32(0..) as f64 / i32::MAX as f64
 }
 
+#[inline(always)]
 fn intersect(spheres: &[Sphere], r: Ray, t: &mut f64, id: &mut usize) -> bool {
     let n = spheres.len();
     let inf = 1e20;
