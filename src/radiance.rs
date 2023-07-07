@@ -88,6 +88,7 @@ pub fn radiance(spheres: Spheres, mut r: Ray, mut depth: i32, rng: fn() -> f64) 
 						r = Ray { origin: x, direction: tdir };
 						throughput = throughput.mul_f(TP);
 						inside = !inside;
+						continue; // TODO: Figure out if returning early here is correct behaviour
 					}
 				} else {
 					if !inside {

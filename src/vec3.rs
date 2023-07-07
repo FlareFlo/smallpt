@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Rem, Sub};
+use std::ops::{Add, AddAssign, Mul, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
 /// Stores positions, but may double as colors too
@@ -63,12 +63,33 @@ impl Add for Vec3 {
 	}
 }
 
+impl AddAssign for Vec3 {
+	fn add_assign(&mut self, rhs: Self) {
+		*self = *self + rhs;
+	}
+}
+
 impl Vec3 {
 	pub const ZEROES: Self = Self {
 		x: 0.0,
 		y: 0.0,
 		z: 0.0,
 	};
+
+	pub const fn one() -> Self {
+		Self {
+			x: 1.0,
+			y: 1.0,
+			z: 1.0,
+		}
+	}
+	pub const fn zero() -> Self {
+		Self {
+			x: 0.0,
+			y: 0.0,
+			z: 0.0,
+		}
+	}
 
 	pub const fn new(x: f64, y: f64, z: f64) -> Self { Self { x, y, z, } }
 
@@ -80,6 +101,12 @@ impl Vec3 {
 			y: self.y * by,
 			z: self.z * by,
 		}
+	}
+
+	/// operator* equivalent
+	#[inline(always)]
+	pub fn mul_v(self, rhs: Self) -> Self {
+		self * rhs
 	}
 
 	/// operator+ equivalent
