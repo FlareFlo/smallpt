@@ -32,6 +32,10 @@ pub fn radiance(spheres: Spheres, mut r: Ray, mut depth: i32, rng: fn() -> f64) 
 				f = f.mul_f(1.0 / p);
 			}
 
+			if obj.emission.x > 0.0 || obj.emission.y > 0.0 || obj.emission.z > 0.0 {
+				result += throughput.mul_v(obj.emission);
+			}
+
 			if obj.refl == ReflectionType::Diff {
 				let r1 = 2.0 * PI * rng();
 				let r2 = rng();
@@ -45,7 +49,7 @@ pub fn radiance(spheres: Spheres, mut r: Ray, mut depth: i32, rng: fn() -> f64) 
 				let v = w % u;
 				let d = (u.mul_f(r1.cos() * r2s) + v.mul_f(r1.sin() * r2s) + w.mul_f((1.0 - r2).sqrt())).norm();
 
-				stack.push((Ray { origin: x, direction: d }, depth, throughput.mul_v(obj.emission)));
+				stack.push((Ray { origin: x, direction: d }, depth, throughput.mul_v(f)));
 				r = Ray { origin: x, direction: d };
 				throughput = throughput.mul_v(f);
 			} else if obj.refl == ReflectionType::Spec {
