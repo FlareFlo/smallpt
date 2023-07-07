@@ -164,7 +164,7 @@ fn main() {
     completed_lines.store(h, Relaxed);
     progress_thread.join().unwrap();
 
-    println!("Finished after: {:.1}", start.elapsed().as_secs_f64());
+    println!("Finished after: {:.1}s", start.elapsed().as_secs_f64());
 
     // Pull buffer out of mutex
     let c = image_buffer.into_inner().unwrap();
