@@ -6,6 +6,7 @@ use std::mem::size_of;
 use std::process::exit;
 use std::sync::{Arc, Mutex, Once};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::Ordering::Relaxed;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 use rayon::iter::IntoParallelIterator;
@@ -97,28 +98,38 @@ fn main() {
     let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
     let completed_lines = Arc::new(AtomicUsize::new(0));
 
+    let super_sampling: usize = 2; // Non-zero multiple of two
+    let super_sampling_area = super_sampling.pow(2);
+    let super_sampling_brightness_factor = 1.0 / super_sampling_area as f64;
+    let effective_samps = super_sampling_area * samps;
+
+    let total_sampled_pixels = w * h * super_sampling_area * samps;
+
     // The progress thread receives a reference to the progress
     let progress_lines = completed_lines.clone();
+    let start = Instant::now();
     let progress_thread = thread::spawn({
         move ||{
-            while progress_lines.load(Ordering::Relaxed) < h {
-                let percentage = 100.0 * progress_lines.load(Ordering::Relaxed) as f64 / (h as f64 - 1.0);
-                // let percentage_left = 100.0 - percentage;
+            while progress_lines.load(Relaxed) < h {
+                let percentage = 100.0 * progress_lines.load(Relaxed) as f64 / (h as f64 - 1.0);
+                let actual_sample_progress = super_sampling_area * samps * w * progress_lines.load(Relaxed);
+                let elapsed = start.elapsed().as_secs_f64();
+
                 clearscreen::clear().unwrap();
-                println!("Rendering at {} samples: {percentage:.1}%", samps * 4);
+                println!("Elapsed: {elapsed:.1}s\nTotal Samples required: {}m\nSamples-per-pixel: {effective_samps}\nResolution: {w}x{h}\nSuperSampling: {super_sampling}x", total_sampled_pixels / 1_000_000);
+                println!("Progress: {percentage:.2}% Samples: {}m  samples/sec: {:.1}m",
+                         actual_sample_progress / 1_000_000,
+                         actual_sample_progress as f64 / 1_000_000.0 / elapsed,
+                );
                 sleep(Duration::from_millis(33)); // Only update progress every 30hz
             }
         }
     });
 
-    let start = Instant::now();
      (0..h).into_par_iter().for_each(|y|
         {
             for x in 0..w {  // Loop cols
                 let i = (h - y - 1) * w + x; // Current pixel index
-
-                let super_sampling: usize = 2; // Non-zero multiple of two
-                let super_sampling_brightness_factor = 1.0 / super_sampling.pow(2) as f64;
 
                 for sy in 0..super_sampling { // 2x2 subpixel rows
 
@@ -146,14 +157,14 @@ fn main() {
                     }
                 }
             }
-            completed_lines.fetch_add(1, Ordering::Relaxed);
+            completed_lines.fetch_add(1, Relaxed);
         }
     );
     // Ensure the status thread terminates
-    completed_lines.store(h, Ordering::Relaxed);
+    completed_lines.store(h, Relaxed);
     progress_thread.join().unwrap();
 
-    println!("Finished rendering after: {:?}", start.elapsed());
+    println!("Finished after: {:.1}", start.elapsed().as_secs_f64());
 
     // Pull buffer out of mutex
     let c = image_buffer.into_inner().unwrap();
