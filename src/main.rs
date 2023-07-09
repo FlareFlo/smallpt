@@ -95,7 +95,7 @@ fn main() {
     let cy = (cx % cam.direction).norm().mul_f(0.5135);
 
     // cast buffer into mutex to access it in parallel
-    let mut image_buffer = Mutex::new(vec![Vec3::ZEROES; w * h]);
+    let mut image_buffer = Vec::from_iter((0..h).map(|_|Mutex::new(vec![Vec3::ZEROES; w])));
     let completed_lines = Arc::new(AtomicUsize::new(0));
 
     let super_sampling: usize = 2; // Non-zero multiple of two
@@ -128,6 +128,7 @@ fn main() {
 
      (0..h).into_par_iter().for_each(|y|
         {
+            let mut buf = image_buffer[y].lock().unwrap();
             for x in 0..w {  // Loop cols
                 let i = (h - y - 1) * w + x; // Current pixel index
 
@@ -153,8 +154,7 @@ fn main() {
                             d =  d.norm();
                             r = r + radiance(spheres, Ray { origin: cam.origin + d.mul_f(140.0), direction: d }, 0, rng).mul_f(1.0 / samps as f64);
                         }
-                        let mut image_buffer = image_buffer.lock().unwrap();
-                        image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(super_sampling_brightness_factor);
+                        buf[x] = buf[x] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(super_sampling_brightness_factor);
                     }
                 }
             }
@@ -168,7 +168,7 @@ fn main() {
     println!("Finished after: {:.1}s", start.elapsed().as_secs_f64());
 
     // Pull buffer out of mutex
-    let c = image_buffer.into_inner().unwrap();
+    let c = image_buffer.into_iter().map(|e|e.into_inner().unwrap()).rev().flatten();
 
     if env::var("NO_SAVE").is_ok() {
         exit(0);
