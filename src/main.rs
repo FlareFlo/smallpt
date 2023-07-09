@@ -130,8 +130,6 @@ fn main() {
         {
             let mut buf = image_buffer[y].lock().unwrap();
             for x in 0..w {  // Loop cols
-                let i = (h - y - 1) * w + x; // Current pixel index
-
                 for sy in 0..super_sampling { // 2x2 subpixel rows
 
                     for sx in 0..super_sampling {  // 2x2 subpixel cols
