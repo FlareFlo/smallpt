@@ -117,7 +117,7 @@ fn main() {
 
                 clearscreen::clear().unwrap();
                 println!("Elapsed: {elapsed:.1}s\nTotal Samples required: {}m\nSamples-per-pixel: {effective_samps}\nResolution: {w}x{h}\nSuperSampling: {super_sampling}x", total_sampled_pixels / 1_000_000);
-                println!("Progress: {percentage:.2}% Samples: {}m  samples/sec: {:.1}m",
+                println!("Progress: {percentage:.2}% Samples: {}m  samples/sec: {:.2}m",
                          actual_sample_progress / 1_000_000,
                          actual_sample_progress as f64 / 1_000_000.0 / elapsed,
                 );
