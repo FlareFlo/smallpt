@@ -148,9 +148,10 @@ fn main() {
                             } else {
                                 1.0 - (2.0 - r2).sqrt()
                             };
-                            let d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
+                            let mut d = cx.mul_f(((sx as f64 + 0.5 + dx) / 2.0 + x as f64) / w as f64 - 0.5) +
                                 cy.mul_f(((sy as f64 + 0.5 + dy) / 2.0 + y as f64) / h as f64 - 0.5 ) + cam.direction;
-                            r = r + radiance(spheres, Ray { origin: cam.origin + d.mul_f(140.0), direction: d.norm() }, 0, rng).mul_f(1.0 / samps as f64);
+                            d =  d.norm();
+                            r = r + radiance(spheres, Ray { origin: cam.origin + d.mul_f(140.0), direction: d }, 0, rng).mul_f(1.0 / samps as f64);
                         }
                         let mut image_buffer = image_buffer.lock().unwrap();
                         image_buffer[i] = image_buffer[i] + Vec3::new(clamp(r.x), clamp(r.y), clamp(r.z)).mul_f(super_sampling_brightness_factor);
