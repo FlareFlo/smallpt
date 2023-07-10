@@ -31,7 +31,7 @@ fn to_int(x: f64) -> i32 { (clamp(x).powf(1.0 / 2.2) * 255.0 + 0.5) as i32 }
 
 #[inline(always)]
 fn erand48() -> f64 {
-    fastrand::i32(0..) as f64 / i32::MAX as f64
+    fastrand::i32(..).abs() as f64 / i32::MAX as f64
 }
 
 #[inline(always)]
