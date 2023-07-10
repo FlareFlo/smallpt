@@ -6,7 +6,7 @@ Stable rust toolchain from [the official installation guide](https://rustup.rs)
 
 ## Prerequisites
 
-### WIndows
+### Windows
 If the executable installer is not used, you may need to manually install [the MSVC prerequisites for Windows](https://rust-lang.github.io/rustup/installation/windows-msvc.html)
 
 ### Linux
