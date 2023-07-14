@@ -1,8 +1,10 @@
 use std::env::args;
 use std::str::FromStr;
-use std::fmt::Write;
 use std::{env, fs, thread};
+use std::fmt::Write as FmtWrite;
+use std::io::{Read, Write};
 use std::mem::size_of;
+use std::net::{Ipv4Addr, TcpListener, TcpStream};
 use std::process::exit;
 use std::sync::{Arc, Mutex, Once};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -11,6 +13,7 @@ use std::thread::sleep;
 use std::time::{Duration, Instant};
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
+use crate::parallel_compute::WorkerMode;
 use crate::radiance::radiance;
 use crate::ray::Ray;
 use crate::sphere::{ReflectionType, Sphere};
@@ -20,6 +23,9 @@ mod vec3;
 mod sphere;
 mod ray;
 mod radiance;
+mod parallel_compute;
+
+pub const PORT: u16 = 12346; // "smallpt" to decimal % 2^16 = 28788
 
 #[inline(always)]
 fn clamp(x: f64) -> f64 {
@@ -67,7 +73,36 @@ pub fn get_spheres() -> [Sphere; 9] {
 }
 
 fn main() {
+    let worker_mode = WorkerMode::from_env().unwrap();
+
     let spheres: Spheres = &get_spheres();
+
+    match dbg!(worker_mode) {
+        WorkerMode::Master => {
+            let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, PORT)).unwrap();
+            let mut work_send = TcpStream::connect((Ipv4Addr::LOCALHOST, PORT)).unwrap();
+            while true {
+                work_send.write_all("balls".as_bytes()).unwrap();
+            }
+            return;
+        }
+        WorkerMode::MasterWorking => {
+
+        }
+        WorkerMode::Slave => {
+            let mut receive = TcpStream::connect((Ipv4Addr::LOCALHOST, PORT)).unwrap();
+            let mut out = String::new();
+            while true {
+                receive.read_to_string(&mut out).unwrap();
+                println!("{}", out);
+                out.clear();
+            }
+            return;
+        }
+        WorkerMode::StandAlone => {
+
+        }
+    }
 
     let rng = erand48;
 

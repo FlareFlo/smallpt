@@ -14,3 +14,4 @@ lto = true
 clearscreen = "2.0.1"
 fastrand = "2.0.0"
 rayon = "1.7.0"
+strum = { version = "0.25.0", default-features = false, features = ["derive"] }
