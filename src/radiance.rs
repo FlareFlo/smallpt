@@ -1,7 +1,8 @@
 use std::f64::consts::PI;
 
-use crate::{intersect, Spheres};
+use crate::{ Spheres};
 use crate::ray::Ray;
+use crate::raytracer::intersect;
 use crate::sphere::ReflectionType;
 use crate::vec3::Vec3;
 
