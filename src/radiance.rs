@@ -1,11 +1,10 @@
 use std::f64::consts::PI;
 
-use crate::{ Spheres};
+use crate::Spheres;
 use crate::ray::Ray;
 use crate::raytracer::intersect;
 use crate::sphere::ReflectionType;
 use crate::vec3::Vec3;
-
 
 pub fn radiance(spheres: Spheres, mut r: Ray, mut depth: i32, rng: fn() -> f64) -> Vec3 {
 	let mut result = Vec3::zero();
@@ -24,7 +23,7 @@ pub fn radiance(spheres: Spheres, mut r: Ray, mut depth: i32, rng: fn() -> f64) 
 		let x = r.origin + r.direction.mul_f(distance_to_intersection);
 		let n = (x - obj.position).norm();
 		let nl = if n.dot(r.direction) < 0.0 { n } else { n.mul_f(-1.0) };
-		let mut f = obj.color;
+		let f = obj.color;
 		let p = f.x.max(f.y).max(f.z);
 
 		depth += 1;

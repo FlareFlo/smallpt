@@ -1,27 +1,20 @@
-use std::env::args;
-use std::str::FromStr;
 use std::{env, fs, thread};
 use std::fmt::Write as FmtWrite;
-use std::io::{Read, Write};
-use std::mem::size_of;
-use std::net::{Ipv4Addr, TcpListener, TcpStream};
 use std::process::exit;
-use std::sync::{Arc, Mutex, Once};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::Relaxed;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
+
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
+
 use crate::radiance::radiance;
-use crate::scene::{get_spheres, Scene};
-use crate::sphere::{ReflectionType, Sphere};
-use crate::vec3::Vec3;
-use crate::worker_mode::WorkerMode;
-
 use crate::ray::Ray;
+use crate::scene::Scene;
 use crate::Spheres;
-
+use crate::vec3::Vec3;
 
 #[inline(always)]
 pub fn clamp(x: f64) -> f64 {
@@ -57,7 +50,7 @@ pub fn render_scene() {
 
 
 	// cast buffer into mutex to access it in parallel
-	let mut image_buffer = Vec::from_iter((0..scene.h).map(|_| Mutex::new(vec![Vec3::ZEROES; scene.w])));
+	let image_buffer = Vec::from_iter((0..scene.h).map(|_| Mutex::new(vec![Vec3::ZEROES; scene.w])));
 	let completed_lines = Arc::new(AtomicUsize::new(0));
 
 	let super_sampling: usize = 2; // Non-zero multiple of two

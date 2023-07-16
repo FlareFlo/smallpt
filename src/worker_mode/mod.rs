@@ -1,4 +1,3 @@
-use std::env::VarError;
 use std::process::exit;
 use std::str::FromStr;
 
@@ -31,7 +30,7 @@ impl FromStr for WorkerMode {
 			"Slave" => Ok(WorkerMode::Slave),
 			"StandAlone" => Ok(WorkerMode::StandAlone),
 
-			_ => {Err(())}
+			_ => { Err(()) }
 		}
 	}
 }
@@ -56,6 +55,5 @@ impl WorkerMode {
 				exit(1);
 			}
 		}
-
 	}
 }

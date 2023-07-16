@@ -47,7 +47,7 @@ impl Sphere {
 		let mut det = b.powi(2) - op.dot(op) + self.rad.powi(2);
 
 		if det < 0.0 {
-			return 0.0
+			return 0.0;
 		} else {
 			det = det.sqrt();
 		}

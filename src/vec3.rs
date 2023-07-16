@@ -91,7 +91,7 @@ impl Vec3 {
 		}
 	}
 
-	pub const fn new(x: f64, y: f64, z: f64) -> Self { Self { x, y, z, } }
+	pub const fn new(x: f64, y: f64, z: f64) -> Self { Self { x, y, z } }
 
 	/// operator* equivalent
 	#[inline(always)]
