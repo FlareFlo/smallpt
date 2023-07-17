@@ -5,7 +5,6 @@ use crate::worker_mode::SERVICE_NAME;
 pub fn slave() {
 	let dns = ServiceDaemon::new().expect("Failed to create daemon");
 	let receiver = dns.browse(SERVICE_NAME).expect("Failed to browse");
-	let conn = TcpStream::connect("192.168.0.102:1024").unwrap();
 
 	while let Ok(event) = receiver.recv() {
 		match event {
