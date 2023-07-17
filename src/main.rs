@@ -1,5 +1,10 @@
+use std::net::TcpListener;
+
+use get_port::Ops;
+use mdns_sd::ServiceInfo;
+
 use crate::sphere::Sphere;
-use crate::worker_mode::WorkerMode;
+use crate::worker_mode::{run_worker_mode, WorkerMode};
 
 mod vec3;
 mod sphere;
@@ -10,12 +15,9 @@ mod raytracer;
 mod scene;
 mod worker_mode;
 
-pub const PORT: u16 = 12346; // "smallpt" to decimal % 2^16 = 28788
-
-
 pub type Spheres<'a> = &'a [Sphere];
 
 
 fn main() {
-	let _worker_mode = WorkerMode::from_env().unwrap();
+	run_worker_mode();
 }

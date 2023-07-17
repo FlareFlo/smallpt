@@ -1,7 +1,28 @@
+mod master;
+mod slave;
+
 use std::process::exit;
 use std::str::FromStr;
+use strum::Display;
+use crate::worker_mode::master::master;
+use crate::worker_mode::slave::slave;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub const SERVICE_NAME: &str = "_smallpt._tcp.local.";
+
+pub fn run_worker_mode() {
+	let worker_mode = WorkerMode::from_env().unwrap();
+	match worker_mode {
+		WorkerMode::Master => {
+			master();
+		}
+		WorkerMode::Slave => {
+			slave();
+		}
+		_ => unimplemented!("Worker-Mode {worker_mode} is not yet implemented"),
+	}
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Display)]
 pub enum WorkerMode {
 	/// Does not compute, only manages work
 	Master,

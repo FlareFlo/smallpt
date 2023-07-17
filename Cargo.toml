@@ -13,5 +13,8 @@ lto = true
 [dependencies]
 clearscreen = "2.0.1"
 fastrand = "2.0.0"
+get-port = "4.0.0"
+local-ip-address = "0.5.3"
+mdns-sd = "0.7.3"
 rayon = "1.7.0"
 strum = { version = "0.25.0", default-features = false, features = ["derive"] }
