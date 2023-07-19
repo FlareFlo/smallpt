@@ -5,10 +5,11 @@ use clearscreen::clear;
 use mdns_sd::{ServiceDaemon, ServiceEvent};
 use crate::worker_mode::SERVICE_NAME;
 
-pub const SLAVE_DISCOVER_TIMEOUT: u64 = 100;
+pub const SLAVE_DISCOVER_TIMEOUT: u64 = 10;
 
 pub fn slave() {
 	let master = resolve_master().unwrap();
+	println!("Connected to master at {master:?}", );
 }
 
 fn resolve_master() -> Option<TcpStream> {

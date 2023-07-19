@@ -10,7 +10,9 @@ use crate::worker_mode::SERVICE_NAME;
 pub fn master() {
 
 	let slaves = connect_slaves(Duration::from_secs(1));
+	loop {
 
+	}
 }
 
 pub fn connect_slaves(timeout: Duration) -> Vec<(TcpStream, SocketAddr)> {
@@ -35,20 +37,12 @@ pub fn connect_slaves(timeout: Duration) -> Vec<(TcpStream, SocketAddr)> {
 		None,
 	).unwrap()
 		.enable_addr_auto();
-	let service_local = ServiceInfo::new(
-		SERVICE_NAME,
-		full_service_name,
-		&host_name,
-		Ipv4Addr::new(127,0,0,1),
-		port,
-		None,
-	).unwrap();
 	dns.register(service).unwrap();
-	dns.register(service_local).unwrap();
 	println!("Advertising master service at {ip}:{port}");
 
 	let mut socks = vec![];
 
+	socks.push(listener.accept().unwrap());
 	// TODO: Await connections until timeout is reached, or key is pressed
 
 	socks
