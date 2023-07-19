@@ -1,5 +1,7 @@
+use std::io::Read;
 use std::net::TcpStream;
 use std::process::exit;
+use std::thread::sleep;
 use std::time::{Duration, Instant};
 use clearscreen::clear;
 use mdns_sd::{ServiceDaemon, ServiceEvent};
@@ -8,8 +10,16 @@ use crate::worker_mode::SERVICE_NAME;
 pub const SLAVE_DISCOVER_TIMEOUT: u64 = 10;
 
 pub fn slave() {
-	let master = resolve_master().unwrap();
+	let mut master = resolve_master().unwrap();
 	println!("Connected to master at {master:?}", );
+	let mut buf = vec![];
+	while let Ok(ma) = master.read(&mut buf) {
+		if ma == 0 {
+			break;
+		}
+		sleep(Duration::from_secs(1));
+	}
+	println!("Dropped connction to master");
 }
 
 fn resolve_master() -> Option<TcpStream> {
